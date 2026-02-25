@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>NEXUS ULTIMATE | V11 STABLE</title>
+    <style>
+        :root { --p: #00e1ff; --a: #00ff88; --bg: #020202; }
+        * { box-sizing: border-box; transition: all 0.2s; }
+        body, html { background: var(--bg); color: #fff; font-family: 'Consolas', monospace; margin: 0; height: 100vh; overflow: hidden; }
+        #lock { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .lock-box { border: 1px solid var(--p); padding: 40px; background: #080808; text-align: center; width: 400px; }
+        .app { display: flex; height: 100vh; flex-direction: column; }
+        header { padding: 15px; border-bottom: 1px solid #222; background: #050505; display: flex; justify-content: space-between; font-size: 11px; }
+        #chat { flex-grow: 1; padding: 25px; overflow-y: auto; background: radial-gradient(circle, #0a0a0a, #000); }
+        .msg { margin-bottom: 25px; padding: 15px; border-left: 3px solid var(--p); background: rgba(255,255,255,0.02); line-height: 1.6; }
+        .label { font-size: 10px; font-weight: bold; margin-bottom: 8px; letter-spacing: 1px; }
+        .ai-lbl { color: var(--p); }
+        .user-lbl { color: var(--a); }
+        .input-zone { padding: 25px; background: #080808; border-top: 1px solid #222; display: flex; gap: 15px; }
+        input { flex-grow: 1; background: #000; border: 1px solid #333; color: #fff; padding: 15px; border-radius: 5px; outline: none; }
+        button { background: var(--p); border: none; padding: 0 30px; cursor: pointer; font-weight: bold; border-radius: 5px; }
+        pre { background: #000; padding: 20px; border: 1px solid #222; color: var(--a); overflow-x: auto; margin: 15px 0; border-radius: 5px; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+    </style>
+</head>
+<body>
+<div id="lock">
+    <div class="lock-box">
+        <h1 style="color: var(--p); letter-spacing: 5px;">NEXUS_v11</h1>
+        <input type="password" id="pw" placeholder="PASSWORD (CREATOR)" style="width: 100%; text-align: center; margin-bottom: 20px;">
+        <button onclick="access()" style="width: 100%; height: 50px;">DECRYPT SYSTEM</button>
+    </div>
+</div>
+<div class="app">
+    <header>
+        <div><span id="dot" class="status-dot" style="background: grey;"></span> CORE_STATUS: <span id="st-text">CHECKING...</span></div>
+        <div style="color: #444;">SERVER: QWEN_32B_INSTRUCT</div>
+    </header>
+    <div id="chat"><div class="msg"><div class="label ai-lbl">[NEXUS_SYSTEM]</div>Я онлайн. Если запросы не идут, значит сервер Hugging Face перегружен. Просто попробуй еще раз через минуту.</div></div>
+    <div class="input-zone">
+        <input type="text" id="prompt" placeholder="Напиши задачу..." onkeypress="if(event.key==='Enter') run()">
+        <button onclick="run()">EXECUTE</button>
+    </div>
+</div>
+<script>
+    const _0x4f21 = "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"; 
+    let authorized = false;
+
+    function access() {
+        if(document.getElementById('pw').value.toUpperCase() === 'CREATOR') {
+            authorized = true;
+            document.getElementById('lock').style.display = 'none';
+            checkAPI();
+        } else { alert("ACCESS DENIED"); }
+    }
+
+    async function checkAPI() {
+        const dot = document.getElementById('dot');
+        const txt = document.getElementById('st-text');
+        try {
+            const res = await fetch("https://api-inference.huggingface.co/models/Qwen/Qwen2.5-Coder-32B-Instruct", {
+                headers: { "Authorization": "Bearer " + _0x4f21 },
+                method: "POST",
+                body: JSON.stringify({ inputs: "test" })
+            });
+            if(res.ok) {
+                dot.style.background = "var(--a)";
+                txt.innerText = "ONLINE";
+            } else {
+                dot.style.background = "orange";
+                txt.innerText = "WAKING UP...";
+            }
+        } catch(e) {
+            dot.style.background = "red";
+            txt.innerText = "OFFLINE/BLOCKED";
+        }
+    }
+
+    async function run() {
+        if(!authorized) return;
+        const inp = document.getElementById('prompt');
+        const text = inp.value.trim();
+        if(!text) return;
+        addMsg("USER", text, "user-lbl");
+        inp.value = "";
+        const loader = addMsg("NEXUS", "<i>[CONNECTING TO AI CORE...]</i>");
+        try {
+            const response = await fetch("https://api-inference.huggingface.co/models/Qwen/Qwen2.5-Coder-32B-Instruct", {
+                method: "POST",
+                headers: { 
+                    "Authorization": "Bearer " + _0x4f21, 
+                    "Content-Type": "application/json" 
+                },
+                body: JSON.stringify({
+                    inputs: `<|im_start|>system\nТы — Nexus AI, эксперт Luau. Пиши ОГРОМНЫЕ скрипты.<|im_end|>\n<|im_start|>user\n${text}<|im_end|>\n<|im_start|>assistant`,
+                    parameters: { max_new_tokens: 2500, temperature: 0.5, wait_for_model: true }
+                })
+            });
+            const data = await response.json();
+            loader.remove();
+            if(data.error) {
+                addMsg("ERROR", "Сервер занят. Подожди немного. Ошибка: " + (data.error.message || data.error));
+            } else {
+                let reply = data[0].generated_text.split('<|im_start|>assistant').pop().trim();
+                addMsg("NEXUS", reply);
+            }
+        } catch (e) {
+            loader.remove();
+            addMsg("ERROR", "Критическая ошибка сети! Убедись, что ты на HTTPS (GitHub Pages).");
+        }
+    }
+
+    function addMsg(who, txt, lblClass = "ai-lbl") {
+        const out = document.getElementById('chat');
+        const d = document.createElement('div');
+        d.className = "msg";
+        let html = txt.replace(/```lua([\s\S]*?)```/g, '<pre><code>$1</code></pre>').replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>').replace(/\n/g, '<br>');
+        d.innerHTML = `<div class="label ${lblClass}">[${who}]</div>${html}`;
+        out.appendChild(d);
+        out.scrollTop = out.scrollHeight;
+        return d;
+    }
+</script>
+</body>
+</html>
