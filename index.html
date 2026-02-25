@@ -2,101 +2,69 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>NEXUS v12 | DUAL CORE AI</title>
+    <title>NEXUS v13 | DIAGNOSTICS</title>
     <style>
-        :root { --p: #00e1ff; --s: #ff00ff; --bg: #050505; --panel: #0a0a0a; --green: #00ff88; }
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        :root { --p: #00e1ff; --s: #ff00ff; --bg: #020202; --panel: #0d0d0d; --green: #00ff88; --red: #ff3333; }
+        * { box-sizing: border-box; font-family: 'Consolas', monospace; }
         body, html { margin: 0; padding: 0; background: var(--bg); color: #fff; height: 100vh; overflow: hidden; }
 
-        /* Экранизация входа */
-        #gate { position: fixed; inset: 0; background: #000; z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        .gate-card { border: 2px solid var(--p); padding: 40px; background: var(--panel); text-align: center; box-shadow: 0 0 40px rgba(0,225,255,0.2); width: 400px; border-radius: 10px; }
-        
-        /* Главный макет */
+        /* Вход */
+        #gate { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .gate-card { border: 1px solid var(--p); padding: 30px; background: var(--panel); text-align: center; width: 350px; border-radius: 5px; }
+
         .app { display: flex; height: 100vh; flex-direction: column; }
         
         header { 
-            padding: 15px 30px; border-bottom: 1px solid #222; background: #000;
-            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 20px; border-bottom: 1px solid #222; background: #000;
+            display: flex; justify-content: space-between; align-items: center; font-size: 12px;
         }
 
-        .status-box { display: flex; gap: 20px; font-size: 12px; }
-        .indicator { display: flex; align-items: center; gap: 5px; }
-        .dot { width: 8px; height: 8px; border-radius: 50%; background: #444; }
-        .active-dot { background: var(--green); box-shadow: 0 0 10px var(--green); }
-
-        /* Чат */
         #viewport { 
-            flex-grow: 1; padding: 30px; overflow-y: auto; 
-            background: linear-gradient(180deg, #050505 0%, #000 100%);
-            scrollbar-width: thin; scrollbar-color: var(--p) #000;
+            flex-grow: 1; padding: 20px; overflow-y: auto; 
+            background: radial-gradient(circle at top, #0a0a0a, #000);
         }
 
-        .bubble { 
-            margin-bottom: 30px; animation: fadeInUp 0.4s ease;
-            max-width: 90%; border-radius: 10px;
-        }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .bubble { margin-bottom: 20px; padding: 15px; border-left: 3px solid var(--p); background: rgba(255,255,255,0.02); animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .ai-msg { border-left: 4px solid var(--p); background: rgba(0, 225, 255, 0.03); padding: 20px; }
-        .user-msg { border-left: 4px solid var(--s); background: rgba(255, 0, 255, 0.03); padding: 20px; margin-left: auto; text-align: right; }
+        .ai-msg { border-color: var(--p); }
+        .user-msg { border-color: var(--s); text-align: right; }
+        .err-msg { border-color: var(--red); color: var(--red); font-size: 12px; }
 
-        .label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; color: var(--p); font-weight: bold; }
+        .control { padding: 20px; background: #080808; border-top: 1px solid #222; display: flex; gap: 10px; }
+        input { flex-grow: 1; background: #000; border: 1px solid #333; color: #fff; padding: 12px; outline: none; border-radius: 4px; }
+        button { background: var(--p); border: none; padding: 0 25px; cursor: pointer; font-weight: bold; border-radius: 4px; }
         
-        /* Код и ввод */
-        pre { background: #000; padding: 20px; border: 1px solid #333; color: var(--green); overflow-x: auto; border-radius: 5px; text-align: left; }
-        
-        .control-bar { padding: 30px; background: #080808; border-top: 1px solid #222; display: flex; gap: 15px; }
-        input { 
-            flex-grow: 1; background: #000; border: 1px solid #333; color: #fff; 
-            padding: 18px; border-radius: 8px; font-size: 16px; outline: none;
-        }
-        input:focus { border-color: var(--p); }
-
-        .btn { 
-            background: var(--p); color: #000; border: none; padding: 0 40px; 
-            font-weight: bold; border-radius: 8px; cursor: pointer;
-        }
-        .btn:hover { box-shadow: 0 0 20px var(--p); }
-
-        #engine-selector { background: #111; color: #fff; border: 1px solid #333; border-radius: 5px; padding: 0 10px; }
+        pre { background: #000; padding: 15px; border: 1px solid #222; color: var(--green); overflow-x: auto; text-align: left; }
+        .diag-btn { font-size: 10px; color: #555; background: none; border: 1px solid #222; padding: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="gate">
     <div class="gate-card">
-        <h1 style="color: var(--p); margin: 0 0 10px;">NEXUS CORE</h1>
-        <p style="color: #555; font-size: 12px; margin-bottom: 30px;">DUAL AI PROTOCOL ACTIVATED</p>
-        <input type="password" id="pass" placeholder="PASSWORD" style="width: 100%; text-align: center; margin-bottom: 20px;">
-        <button onclick="boot()" class="btn" style="width: 100%; height: 50px;">INITIALIZE</button>
+        <h2 style="color: var(--p); margin: 0 0 20px;">SYSTEM ACCESS</h2>
+        <input type="password" id="pass" placeholder="PASSWORD (CREATOR)" style="width: 100%; text-align: center; margin-bottom: 15px; padding: 10px; background: #000; color: #fff; border: 1px solid #333;">
+        <button onclick="boot()" style="width: 100%; height: 40px; background: var(--p); font-weight: bold; cursor: pointer;">ENTER</button>
     </div>
 </div>
 
 <div class="app">
     <header>
-        <div style="font-weight: bold; font-size: 18px; color: var(--p);">NEXUS <span style="color: #fff;">v12</span></div>
-        <div class="status-box">
-            <div class="indicator"><div id="d1" class="dot"></div> ENGINE_1: QWEN</div>
-            <div class="indicator"><div id="d2" class="dot"></div> ENGINE_2: LLAMA</div>
-        </div>
-        <select id="engine-selector">
-            <option value="qwen">CORE: QWEN (Luau Expert)</option>
-            <option value="llama">CORE: LLAMA (Fast Logic)</option>
-        </select>
+        <div id="st">STATUS: <span style="color: grey;">WAITING</span></div>
+        <div style="color: var(--p);">NEXUS_v13_DEBUG</div>
+        <button class="diag-btn" onclick="testConnection()">RUN DIAGNOSTICS</button>
     </header>
 
     <div id="viewport">
         <div class="bubble ai-msg">
-            <div class="label">System</div>
-            Привет, Создатель. Я подключил два независимых ядра ИИ. <br>
-            Если один не отвечает, просто переключи <b>CORE</b> сверху.
+            <b>[NEXUS]:</b> Система в работе. Если видишь ошибку сети на GitHub Pages — нажми кнопку <b>RUN DIAGNOSTICS</b> вверху и напиши мне, что там появилось.
         </div>
     </div>
 
-    <div class="control-bar">
-        <input type="text" id="input" placeholder="Опиши скрипт (например: 'Сделай систему инвентаря на GUI')..." onkeypress="if(event.key==='Enter') send()">
-        <button class="btn" onclick="send()">RUN</button>
+    <div class="control">
+        <input type="text" id="input" placeholder="Введите задачу..." onkeypress="if(event.key==='Enter') send()">
+        <button onclick="send()">RUN</button>
     </div>
 </div>
 
@@ -104,29 +72,24 @@
     const TOKEN = "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";
     let isLogged = false;
 
-    // Модели
-    const ENGINES = {
-        qwen: "https://api-inference.huggingface.co/models/Qwen/Qwen2.5-Coder-32B-Instruct",
-        llama: "https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-11B-Vision-Instruct"
-    };
-
     function boot() {
         if(document.getElementById('pass').value.toUpperCase() === 'CREATOR') {
             document.getElementById('gate').style.display = 'none';
             isLogged = true;
-            testEngines();
-        } else { alert("ACCESS DENIED"); }
+        } else { alert("WRONG PASSWORD"); }
     }
 
-    async function testEngines() {
-        for(let key in ENGINES) {
-            try {
-                const res = await fetch(ENGINES[key], {
-                    headers: { "Authorization": `Bearer ${TOKEN}` },
-                    method: "POST", body: JSON.stringify({ inputs: "test" })
-                });
-                if(res.ok) document.getElementById(key === 'qwen' ? 'd1' : 'd2').classList.add('active-dot');
-            } catch(e) {}
+    async function testConnection() {
+        addMsg("SYSTEM", "Запуск диагностики...");
+        try {
+            const res = await fetch("https://api-inference.huggingface.co/models/Qwen/Qwen2.5-Coder-32B-Instruct", {
+                headers: { "Authorization": `Bearer ${TOKEN}` },
+                method: "POST", body: JSON.stringify({ inputs: "ping" })
+            });
+            const data = await res.json();
+            addMsg("DIAG", `Ответ сервера: ${res.status} ${res.statusText}. Данные: ${JSON.stringify(data).substring(0, 50)}`);
+        } catch (e) {
+            addMsg("DIAG", `ОШИБКА FETCH: ${e.message}. Скорее всего, запрос блокируется браузером.`, "err-msg");
         }
     }
 
@@ -136,19 +99,17 @@
         const val = inp.value.trim();
         if(!val) return;
 
-        addMsg("USER", val, "user-msg");
+        addMsg("YOU", val, "user-msg");
         inp.value = "";
-        
-        const loader = addMsg("NEXUS", "<i>[ГЕНЕРАЦИЯ ЧЕРЕЗ ВЫБРАННОЕ ЯДРО...]</i>", "ai-msg");
-        const engine = document.getElementById('engine-selector').value;
+        const loader = addMsg("NEXUS", "<i>[GENERATING...]</i>");
 
         try {
-            const response = await fetch(ENGINES[engine], {
+            const response = await fetch("https://api-inference.huggingface.co/models/Qwen/Qwen2.5-Coder-32B-Instruct", {
                 method: "POST",
                 headers: { "Authorization": `Bearer ${TOKEN}`, "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    inputs: `<|im_start|>system\nТы - лучший Roblox программист. Пиши огромные скрипты.<|im_end|>\n<|im_start|>user\n${val}<|im_end|>\n<|im_start|>assistant`,
-                    parameters: { max_new_tokens: 2000, wait_for_model: true }
+                    inputs: `<|im_start|>system\nТы - лучший Luau программист. Пиши код и объяснения.<|im_end|>\n<|im_start|>user\n${val}<|im_end|>\n<|im_start|>assistant`,
+                    parameters: { max_new_tokens: 1500, wait_for_model: true }
                 })
             });
 
@@ -156,28 +117,23 @@
             loader.remove();
 
             if(data.error) {
-                addMsg("ERROR", "Это ядро занято или просыпается. Попробуй переключить Core в меню сверху или подожди 20 сек.", "ai-msg");
+                addMsg("ERROR", "ИИ занят или токен не активен. " + (data.error.message || data.error), "err-msg");
             } else {
-                let text = data[0].generated_text || data.generated_text || "Ошибка формата";
-                if(text.includes('assistant')) text = text.split('assistant').pop();
-                addMsg("NEXUS", text, "ai-msg");
+                let text = data[0].generated_text.split('assistant').pop().trim();
+                addMsg("NEXUS", text);
             }
         } catch (e) {
             loader.remove();
-            addMsg("ERROR", "Критический блок запроса. Убедись, что зашел через HTTPS на GitHub!", "ai-msg");
+            addMsg("CRITICAL ERROR", `Ошибка сети: ${e.message}. Убедись, что отключил AdBlock и зашел через HTTPS.`, "err-msg");
         }
     }
 
-    function addMsg(who, txt, cls) {
+    function addMsg(who, txt, cls = "ai-msg") {
         const view = document.getElementById('viewport');
         const d = document.createElement('div');
         d.className = "bubble " + cls;
-        
-        let html = txt.replace(/```lua([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-                      .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-                      .replace(/\n/g, '<br>');
-        
-        d.innerHTML = `<div class="label">${who}</div>${html}`;
+        let html = txt.replace(/```lua([\s\S]*?)```/g, '<pre><code>$1</code></pre>').replace(/\n/g, '<br>');
+        d.innerHTML = `<b>[${who}]:</b><br>${html}`;
         view.appendChild(d);
         view.scrollTop = view.scrollHeight;
         return d;
